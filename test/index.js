@@ -215,7 +215,7 @@ describe('koa-body', () => {
           file.name = 'backage.json'
           const folder = path.dirname(file.path);
           file.path = path.join(folder, file.name);
-        }
+        },
       }
     }));
     app.use(router.routes());
@@ -235,6 +235,34 @@ describe('koa-body', () => {
         should(fs.statSync(res.body._files.firstField.path)).be.ok();
         fs.unlinkSync(res.body._files.firstField.path);
 
+        done();
+      });
+  });
+
+  it('test onPart handler of formidable',  (done) => {
+    app.use(koaBody({
+      multipart: true,
+      formidable: {
+        uploadDir: __dirname + '/temp',
+        onPart: function(part) {
+            if (part.filename) {
+                if(part.mime === 'application/json') {
+                    throw new Error('mime not allowed')
+                }
+            }
+            this.handlePart(part);
+        }
+      }
+    }));
+    app.use(router.routes());
+
+    request(http.createServer(app.callback()))
+      .post('/users')
+      .type('multipart/form-data')
+      .attach('firstField', 'package.json')
+      .expect(400)
+      .end( (err, res) => {
+        //if (err) return done(err);
         done();
       });
   });

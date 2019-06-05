@@ -45,7 +45,7 @@ function requestbody(opts) {
   opts.formLimit = 'formLimit' in opts ? opts.formLimit : '56kb';
   opts.queryString = 'queryString' in opts ? opts.queryString : null;
   opts.formidable = 'formidable' in opts ? opts.formidable : {};
-  opts.includeUnparsed = 'includeUnparsed' in opts ? opts.includeUnparsed : false
+  opts.includeUnparsed = 'includeUnparsed' in opts ? opts.includeUnparsed : false;
   opts.textLimit = 'textLimit' in opts ? opts.textLimit : '56kb';
 
   // @todo: next major version, opts.strict support should be removed
@@ -168,6 +168,11 @@ function formy(ctx, opts) {
     var fields = {};
     var files = {};
     var form = new forms.IncomingForm(opts);
+
+    if (opts.onPart) {
+      form.onPart = opts.onPart;
+    }
+
     form.on('end', function () {
       return resolve({
         fields: fields,
@@ -199,6 +204,7 @@ function formy(ctx, opts) {
     if (opts.onFileBegin) {
       form.on('fileBegin', opts.onFileBegin);
     }
+
     form.parse(ctx.req);
   });
 }
